@@ -3,6 +3,6 @@
 
 export function Greet(arg1:string):Promise<string>;
 
-export function OpenFile():Promise<string>;
+export function OpenFile():Promise<void>;
 
 export function Test():Promise<string>;
