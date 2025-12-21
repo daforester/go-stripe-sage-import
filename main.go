@@ -18,8 +18,8 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "Stripe CSV Converter for Sage Accounts",
-		Width:  1024,
-		Height: 768,
+		Width:  300,
+		Height: 100,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

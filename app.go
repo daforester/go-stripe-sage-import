@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"os"
+	"strings"
 )
 
 // App struct
@@ -59,36 +60,62 @@ func (a *App) OpenFile() {
 
 	output := make([][]string, 0)
 
+	output = append(output, []string{
+		"Date",
+		"Description",
+		"Money in",
+		"Money out",
+	})
+
 	for _, line := range lines {
 		if line[headers["Status"]] != "Paid" && line[headers["Status"]] != "Refunded" {
 			continue
 		}
 		entry := make([]string, 0)
-		entry = append(entry, line[headers["Created date (UTC)"]])
+		date := strings.SplitN(line[headers["Created date (UTC)"]], " ", 2)[0]
+		description := strings.Map(func(r rune) rune {
+			if r > 127 {
+				return -1
+			}
+			return r
+		}, line[headers["Description"]])
+
+		entry = append(entry, date)
+		entry = append(entry, description)
 		entry = append(entry, line[headers["Amount"]])
-		entry = append(entry, line[headers["Description"]])
-		output = append(output, line)
+		entry = append(entry, "")
+		output = append(output, entry)
 
 		entry = make([]string, 0)
-		entry = append(entry, line[headers["Created date (UTC)"]])
-		entry = append(entry, "-"+line[headers["Fee"]])
-		entry = append(entry, "Processing Fee: "+line[headers["Description"]])
+		entry = append(entry, date)
+		entry = append(entry, "Processing Fee: "+description)
+		entry = append(entry, "")
+		entry = append(entry, line[headers["Fee"]])
+		output = append(output, entry)
 
 		if line[headers["Amount Refunded"]] != "0.00" {
 			entry = make([]string, 0)
-			entry = append(entry, line[headers["Created date (UTC)"]])
-			entry = append(entry, "-"+line[headers["Amount Refunded"]])
-			entry = append(entry, "Refund: "+line[headers["Description"]])
+			date := strings.SplitN(line[headers["Refunded date (UTC)"]], " ", 2)[0]
+			entry = append(entry, date)
+			entry = append(entry, "Refund: "+description)
+			entry = append(entry, "")
+			entry = append(entry, line[headers["Amount Refunded"]])
+			output = append(output, entry)
 		}
-
-		output = append(output, entry)
 	}
 
 	dest, _ := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title: "Select a file",
+		DefaultFilename: "sage.csv",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "csv",
+				Pattern:     "*.csv",
+			},
+		},
+		Title: "Enter Destination File",
 	})
 
-	d, err := os.Open(dest)
+	d, err := os.OpenFile(dest, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
 	defer func(b *os.File) {
 		err = d.Close()
 		if err != nil {

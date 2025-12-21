@@ -10,11 +10,16 @@ async function pickFile() {
 </script>
 
 <template>
-  <main>
-    <button @click="pickFile">Pick File</button>
-  </main>
+  <button @click="pickFile">Load Stripe File</button>
 </template>
 
 <style scoped>
-
+button {
+  background: green;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  height: 100vh;
+  width: 100vw;
+}
 </style>
